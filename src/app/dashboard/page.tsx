@@ -9,7 +9,6 @@ import {
   LogOut,
   CheckCircle2,
   MoreVertical,
-  LayoutDashboard,
   TrendingUp,
   Menu,
 } from "lucide-react";
@@ -24,6 +23,8 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Checkbox } from "../../components/ui/checkbox";
+import Dialog from "../../components/ui/dialog";
+import Sidebar from "../../components/sidebar";
 
 interface Task {
   id: number;
@@ -82,7 +83,18 @@ export default function Home() {
   const [editDescription, setEditDescription] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Dialog states
+  const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
+  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
     router.push("/login");
@@ -99,6 +111,7 @@ export default function Home() {
       setTasks([...tasks, newTask]);
       setNewTaskTitle("");
       setNewTaskDescription("");
+      setShowAddTaskDialog(false);
     }
   };
 
@@ -111,13 +124,23 @@ export default function Home() {
   };
 
   const handleDeleteTask = (taskId: number) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    setTaskToDelete(taskId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteTask = () => {
+    if (taskToDelete !== null) {
+      setTasks(tasks.filter((task) => task.id !== taskToDelete));
+      setShowDeleteConfirm(false);
+      setTaskToDelete(null);
+    }
   };
 
   const handleEditTask = (task: Task) => {
     setEditingTaskId(task.id);
     setEditTitle(task.title);
     setEditDescription(task.description);
+    setShowEditTaskDialog(true);
   };
 
   const handleSaveEdit = (taskId: number) => {
@@ -131,12 +154,14 @@ export default function Home() {
     setEditingTaskId(null);
     setEditTitle("");
     setEditDescription("");
+    setShowEditTaskDialog(false);
   };
 
   const handleCancelEdit = () => {
     setEditingTaskId(null);
     setEditTitle("");
     setEditDescription("");
+    setShowEditTaskDialog(false);
   };
 
   const filteredTasks = tasks.filter(
@@ -170,38 +195,26 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-6 hidden md:block">
-        <div className="flex items-center gap-2 mb-8">
-          <ListTodo className="w-8 h-8 text-blue-600" />
-          <span className="text-xl font-bold text-gray-900">TaskFlow</span>
-        </div>
-
-        <nav className="space-y-2">
-          <button
-            onClick={() => setActiveTab("dashboard")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "dashboard"
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            <span>Dashboard</span>
-          </button>
-        </nav>
-      </aside>
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row h-screen">
+      {/* Sidebar - Desktop Only */}
+      <div className="hidden md:block">
+        <Sidebar
+          user={user}
+          onLogout={handleLogout}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col w-full">
+      <div className="flex-1 flex flex-col w-full overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex-shrink-0">
           <div className="flex justify-between items-center">
             {/* Left - Logo (Mobile) */}
             <div className="flex md:hidden items-center gap-2">
               <ListTodo className="w-6 h-6 text-blue-600" />
-              <span className="text-lg font-bold text-gray-900">TaskFlow</span>
+              <span className="text-lg font-bold text-gray-900">TugasKu</span>
             </div>
 
             {/* Right - Hamburger Menu (Mobile) */}
@@ -221,30 +234,20 @@ export default function Home() {
               </DropdownMenu>
             </div>
 
-            {/* Desktop - Logout Button */}
-            <div className="hidden md:flex items-center gap-3 ml-auto">
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="whitespace-nowrap text-sm md:text-base"
-              >
-                <LogOut className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </div>
+            {/* Desktop - User Profile (Sidebar) */}
+            <div className="hidden md:block"></div>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           {/* Welcome Section */}
           <div className="mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Selamat datang kembali, {user.username?.split(" ")[0] || "User"}!
-              👋
+              Selamat datang, {user.username?.split(" ")[0] || "User"}! 👋
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              Berikut adalah ringkasan tugas Anda hari ini
+              Berikut adalah ringkasan tugas Anda
             </p>
           </div>
 
@@ -270,9 +273,9 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative w-full">
+          {/* Search Bar with Add Button */}
+          <div className="mb-6 flex gap-3">
+            <div className="relative w-full flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="search"
@@ -282,42 +285,24 @@ export default function Home() {
                 className="pl-10 w-full"
               />
             </div>
+            <Button
+              onClick={() => {
+                setNewTaskTitle("");
+                setNewTaskDescription("");
+                setShowAddTaskDialog(true);
+              }}
+              className="gap-2 text-sm sm:text-base flex-shrink-0 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Tambah Tugas</span>
+              <span className="sm:hidden ">Tambah</span>
+            </Button>
           </div>
-
-          {/* Add New Task */}
-          <Card className="p-3 sm:p-4 mb-6">
-            <div className="space-y-3">
-              <Input
-                placeholder="Tambah tugas baru..."
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-                className="w-full text-sm sm:text-base"
-              />
-              <Input
-                placeholder="Deskripsi tugas (opsional)..."
-                value={newTaskDescription}
-                onChange={(e) => setNewTaskDescription(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-                className="w-full text-sm sm:text-base"
-              />
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleAddTask}
-                  className="gap-2 text-sm sm:text-base"
-                >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">Tambah Tugas</span>
-                  <span className="sm:hidden">Tambah</span>
-                </Button>
-              </div>
-            </div>
-          </Card>
 
           {/* Tasks Section */}
           {/* Tugas Belum Selesai */}
           <div className="mb-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Tugas Belum Selesai
               </h2>
@@ -325,6 +310,7 @@ export default function Home() {
                 {incompleteTasks.length}
               </span>
             </div>
+
             <div className="space-y-3">
               {incompleteTasks.length > 0 ? (
                 incompleteTasks.map((task) => (
@@ -340,90 +326,52 @@ export default function Home() {
                       />
 
                       <div className="flex-1 min-w-0 w-full">
-                        {editingTaskId === task.id ? (
-                          <div className="space-y-3 mb-3">
-                            <Input
-                              value={editTitle}
-                              onChange={(e) => setEditTitle(e.target.value)}
-                              placeholder="Judul tugas"
-                              className="w-full text-sm sm:text-base"
-                            />
-                            <Input
-                              value={editDescription}
-                              onChange={(e) =>
-                                setEditDescription(e.target.value)
-                              }
-                              placeholder="Deskripsi tugas"
-                              className="w-full text-sm sm:text-base"
-                            />
-                            <div className="flex gap-2 flex-wrap">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base break-words">
+                            {task.title}
+                          </h3>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => handleSaveEdit(task.id)}
-                                className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                                className="h-8 w-8 p-0 flex-shrink-0"
                               >
-                                Simpan
+                                <MoreVertical className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCancelEdit}
-                                className="text-xs sm:text-sm"
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleEditTask(task)}
                               >
-                                Batal
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                              <h3 className="font-semibold text-gray-900 text-sm sm:text-base break-words">
-                                {task.title}
-                              </h3>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 flex-shrink-0"
-                                  >
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => handleEditTask(task)}
-                                  >
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-red-600"
-                                    onClick={() => handleDeleteTask(task.id)}
-                                  >
-                                    Hapus
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteTask(task.id)}
+                              >
+                                Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
 
-                            {task.description && (
-                              <p className="text-gray-600 text-xs sm:text-sm mb-3 break-words">
-                                {task.description}
-                              </p>
-                            )}
-
-                            <div className="flex flex-wrap items-center gap-3">
-                              {task.isCompleted === false && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-blue-600 border-blue-600 text-xs sm:text-sm"
-                                >
-                                  Belum Selesai
-                                </Badge>
-                              )}
-                            </div>
-                          </>
+                        {task.description && (
+                          <p className="text-gray-600 text-xs sm:text-sm mb-3 break-words">
+                            {task.description}
+                          </p>
                         )}
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          {task.isCompleted === false && (
+                            <Badge
+                              variant="outline"
+                              className="text-blue-600 border-blue-600 text-xs sm:text-sm"
+                            >
+                              Belum Selesai
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -458,88 +406,50 @@ export default function Home() {
                       />
 
                       <div className="flex-1 min-w-0 w-full">
-                        {editingTaskId === task.id ? (
-                          <div className="space-y-3 mb-3">
-                            <Input
-                              value={editTitle}
-                              onChange={(e) => setEditTitle(e.target.value)}
-                              placeholder="Judul tugas"
-                              className="w-full text-sm sm:text-base"
-                            />
-                            <Input
-                              value={editDescription}
-                              onChange={(e) =>
-                                setEditDescription(e.target.value)
-                              }
-                              placeholder="Deskripsi tugas"
-                              className="w-full text-sm sm:text-base"
-                            />
-                            <div className="flex gap-2 flex-wrap">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="font-semibold line-through text-gray-500 text-sm sm:text-base break-words">
+                            {task.title}
+                          </h3>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => handleSaveEdit(task.id)}
-                                className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                                className="h-8 w-8 p-0 flex-shrink-0"
                               >
-                                Simpan
+                                <MoreVertical className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCancelEdit}
-                                className="text-xs sm:text-sm"
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleEditTask(task)}
                               >
-                                Batal
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
-                              <h3 className="font-semibold line-through text-gray-500 text-sm sm:text-base break-words">
-                                {task.title}
-                              </h3>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 flex-shrink-0"
-                                  >
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => handleEditTask(task)}
-                                  >
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-red-600"
-                                    onClick={() => handleDeleteTask(task.id)}
-                                  >
-                                    Hapus
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-
-                            {task.description && (
-                              <p className="text-gray-600 text-xs sm:text-sm mb-3 break-words">
-                                {task.description}
-                              </p>
-                            )}
-
-                            <div className="flex flex-wrap items-center">
-                              <Badge
-                                variant="outline"
-                                className="text-green-600 border-green-600 text-xs sm:text-sm"
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteTask(task.id)}
                               >
-                                Selesai
-                              </Badge>
-                            </div>
-                          </>
+                                Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {task.description && (
+                          <p className="text-gray-600 text-xs sm:text-sm mb-3 break-words">
+                            {task.description}
+                          </p>
                         )}
+
+                        <div className="flex flex-wrap items-center">
+                          <Badge
+                            variant="outline"
+                            className="text-green-600 border-green-600 text-xs sm:text-sm"
+                          >
+                            Selesai
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -555,6 +465,133 @@ export default function Home() {
           </div>
         </main>
       </div>
+
+      {/* Add Task Dialog */}
+      <Dialog
+        isOpen={showAddTaskDialog}
+        title="Tambah Tugas Baru"
+        onClose={() => setShowAddTaskDialog(false)}
+        actions={[
+          {
+            label: "Tambah",
+            onClick: handleAddTask,
+            variant: "default",
+            className:
+              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+          },
+        ]}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judul Tugas
+            </label>
+            <Input
+              placeholder="Masukkan judul tugas..."
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              className="w-full"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Deskripsi (Opsional)
+            </label>
+            <Input
+              placeholder="Masukkan deskripsi tugas..."
+              value={newTaskDescription}
+              onChange={(e) => setNewTaskDescription(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog
+        isOpen={showEditTaskDialog}
+        title="Edit Tugas"
+        onClose={handleCancelEdit}
+        actions={[
+          {
+            label: "Simpan",
+            onClick: () =>
+              editingTaskId !== null && handleSaveEdit(editingTaskId),
+            variant: "default",
+            className:
+              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+          },
+        ]}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Judul Tugas
+            </label>
+            <Input
+              placeholder="Masukkan judul tugas..."
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Deskripsi (Opsional)
+            </label>
+            <Input
+              placeholder="Masukkan deskripsi tugas..."
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={showDeleteConfirm}
+        title="Hapus Tugas"
+        onClose={() => setShowDeleteConfirm(false)}
+        actions={[
+          {
+            label: "Hapus",
+            onClick: confirmDeleteTask,
+            variant: "destructive",
+          },
+        ]}
+      >
+        <p className="text-gray-600">
+          Apakah Anda yakin ingin menghapus tugas ini? Tindakan ini tidak dapat
+          dibatalkan.
+        </p>
+      </Dialog>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog
+        isOpen={showLogoutConfirm}
+        title="Konfirmasi Logout"
+        onClose={() => setShowLogoutConfirm(false)}
+        actions={[
+          {
+            label: "Logout",
+            onClick: confirmLogout,
+            variant: "destructive",
+            className:
+              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+          },
+        ]}
+      >
+        <p className="text-gray-600">
+          Apakah Anda yakin ingin keluar? Anda harus login kembali untuk
+          mengakses akun Anda.
+        </p>
+      </Dialog>
     </div>
   );
 }

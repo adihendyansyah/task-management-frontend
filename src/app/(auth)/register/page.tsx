@@ -2,11 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ListTodo, Lock, User, ArrowRight } from "lucide-react";
+import { ListTodo, Lock, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Card } from "../../../components/ui/card";
+import Alert from "../../../components/ui/alert";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,19 +17,41 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
 
+  const [alert, setAlert] = useState({
+    isOpen: false,
+    type: "info" as "success" | "error" | "info",
+    title: "",
+    message: "",
+    actionLabel: "",
+    onAction: null as (() => void) | null,
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Password tidak cocok!");
+      setAlert({
+        isOpen: true,
+        type: "error",
+        title: "Password Tidak Cocok",
+        message: "Pastikan password dan konfirmasi password sama.",
+        actionLabel: "",
+        onAction: null,
+      });
       return;
     }
 
     // Cek apakah user sudah pernah register
     const existingUser = localStorage.getItem("registeredUser");
     if (existingUser) {
-      alert("Akun sudah terdaftar, silakan login.");
-      router.push("/login");
+      setAlert({
+        isOpen: true,
+        type: "error",
+        title: "Akun Sudah Terdaftar",
+        message: "Silakan login dengan akun yang sudah ada.",
+        actionLabel: "Masuk",
+        onAction: () => router.push("/login"),
+      });
       return;
     }
 
@@ -41,8 +64,14 @@ export default function RegisterPage() {
       })
     );
 
-    alert("Registrasi berhasil! Silakan login.");
-    router.push("/login");
+    setAlert({
+      isOpen: true,
+      type: "success",
+      title: "Registrasi Berhasil!",
+      message: "Silakan login dengan akun yang baru dibuat.",
+      actionLabel: "Masuk",
+      onAction: () => router.push("/login"),
+    });
   };
 
   return (
@@ -53,7 +82,7 @@ export default function RegisterPage() {
           <div className="flex items-center gap-2">
             <ListTodo className="w-10 h-10 md:w-12 md:h-12 text-blue-600" />
             <span className="text-2xl md:text-3xl font-bold text-gray-900">
-              MyTask
+              TugasKu
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
@@ -66,12 +95,19 @@ export default function RegisterPage() {
         </div>
 
         {/* Right Side */}
-        <Card className="p-6 sm:p-8 shadow-xl w-full">
-          <div className="mb-8">
+        <Card className="p-6 sm:p-8 shadow-xl w-full relative">
+          <Link
+            href="/"
+            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Kembali"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </Link>
+          <div className="mb-1">
             {/* Mobile header */}
             <div className="md:hidden mb-6 flex items-center gap-2">
               <ListTodo className="w-8 h-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">MyTask</span>
+              <span className="text-2xl font-bold text-gray-900">TugasKu</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -88,7 +124,7 @@ export default function RegisterPage() {
                 Username
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-2 w-5 h-5 text-gray-400" />
                 <Input
                   id="username"
                   type="text"
@@ -108,7 +144,7 @@ export default function RegisterPage() {
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-2 w-5 h-5 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
@@ -128,7 +164,7 @@ export default function RegisterPage() {
                 Konfirmasi Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-2 w-5 h-5 text-gray-400" />
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -148,7 +184,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full text-sm sm:text-base"
+              className="w-full text-sm sm:text-base bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
             >
               Daftar Sekarang
@@ -167,6 +203,16 @@ export default function RegisterPage() {
           </p>
         </Card>
       </div>
+
+      <Alert
+        isOpen={alert.isOpen}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        actionLabel={alert.actionLabel}
+        onAction={alert.onAction || undefined}
+        onClose={() => setAlert({ ...alert, isOpen: false })}
+      />
     </div>
   );
 }

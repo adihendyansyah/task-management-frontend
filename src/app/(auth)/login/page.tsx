@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ListTodo, User, Lock, ArrowRight } from "lucide-react";
+import { ListTodo, User, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Card } from "../../../components/ui/card";
+import Alert from "../../../components/ui/alert";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -15,14 +16,29 @@ export default function LoginPage() {
     password: "",
   });
 
+  const [alert, setAlert] = useState({
+    isOpen: false,
+    type: "info" as "success" | "error" | "info",
+    title: "",
+    message: "",
+    actionLabel: "",
+    onAction: null as (() => void) | null,
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const registeredUser = localStorage.getItem("registeredUser");
 
     if (!registeredUser) {
-      alert("Silakan daftar terlebih dahulu.");
-      router.push("/register");
+      setAlert({
+        isOpen: true,
+        type: "info",
+        title: "Belum Terdaftar",
+        message: "Silakan daftar terlebih dahulu untuk membuat akun.",
+        actionLabel: "Daftar",
+        onAction: () => router.push("/register"),
+      });
       return;
     }
 
@@ -32,7 +48,14 @@ export default function LoginPage() {
       user.username !== formData.username ||
       user.password !== formData.password
     ) {
-      alert("Username atau password salah.");
+      setAlert({
+        isOpen: true,
+        type: "error",
+        title: "Login Gagal",
+        message: "Username atau password salah. Silakan coba lagi.",
+        actionLabel: "",
+        onAction: null,
+      });
       return;
     }
 
@@ -51,7 +74,7 @@ export default function LoginPage() {
           <Link href="/" className="flex items-center gap-2">
             <ListTodo className="w-10 h-10 md:w-12 md:h-12 text-blue-600" />
             <span className="text-2xl md:text-3xl font-bold text-gray-900">
-              MyTask
+              TugasKu
             </span>
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
@@ -63,12 +86,19 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side */}
-        <Card className="p-6 sm:p-8 shadow-xl w-full">
-          <div className="mb-8">
+        <Card className="p-6 sm:p-8 shadow-xl w-full relative">
+          <Link
+            href="/"
+            className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Kembali"
+          >
+            <ArrowLeft className="w-5 h-5  text-gray-600" />
+          </Link>
+          <div className="mb-1 ">
             {/* Mobile header */}
             <div className="md:hidden mb-6 flex items-center gap-2">
               <ListTodo className="w-8 h-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">MyTask</span>
+              <span className="text-2xl font-bold text-gray-900">TugasKu</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -79,13 +109,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-2">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm sm:text-base">
                 Username
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <User className="absolute left-3 top-2 w-5 h-5 text-gray-400" />
                 <Input
                   id="username"
                   type="text"
@@ -105,7 +135,7 @@ export default function LoginPage() {
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-2 w-5 h-5 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
@@ -122,7 +152,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full text-sm sm:text-base"
+              className="w-full text-sm sm:text-base bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
             >
               Masuk
@@ -141,6 +171,16 @@ export default function LoginPage() {
           </p>
         </Card>
       </div>
+
+      <Alert
+        isOpen={alert.isOpen}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        actionLabel={alert.actionLabel}
+        onAction={alert.onAction || undefined}
+        onClose={() => setAlert({ ...alert, isOpen: false })}
+      />
     </div>
   );
 }
