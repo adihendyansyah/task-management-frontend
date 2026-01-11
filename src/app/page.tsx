@@ -65,7 +65,7 @@ export default function LandingPage() {
                 <Link href="/register">
                   <Button
                     size="lg"
-                    className="px-8 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                    className="px-8 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg cursor-pointer"
                   >
                     Daftar Sekarang
                   </Button>
@@ -74,7 +74,7 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="px-8 shadow-lg"
+                    className="px-8 shadow-lg cursor-pointer"
                   >
                     Masuk
                   </Button>

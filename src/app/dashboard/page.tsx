@@ -602,7 +602,7 @@ export default function Home() {
             onClick: confirmLogout,
             variant: "destructive",
             className:
-              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+              "cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
           },
         ]}
       >
