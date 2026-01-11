@@ -67,7 +67,7 @@ export default function Sidebar({
         <Button
           onClick={onLogout}
           variant="outline"
-          className="w-full justify-center gap-2"
+          className="w-full justify-center gap-2 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           Logout

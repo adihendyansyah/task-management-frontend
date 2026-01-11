@@ -184,7 +184,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full text-sm sm:text-base bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full text-sm sm:text-base cursor-pointer bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
             >
               Daftar Sekarang

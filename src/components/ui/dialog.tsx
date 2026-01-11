@@ -33,7 +33,7 @@ export default function Dialog({
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>
@@ -43,7 +43,7 @@ export default function Dialog({
 
         {actions && actions.length > 0 && (
           <div className="flex gap-3 p-6 border-t border-gray-200 justify-end">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} className="cursor-pointer">
               Batal
             </Button>
             {actions.map((action, idx) => (

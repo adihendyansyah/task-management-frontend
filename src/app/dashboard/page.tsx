@@ -36,12 +36,14 @@ interface Task {
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
 
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      setIsLoading(false);
     } else {
       router.push("/login");
     }
@@ -81,7 +83,7 @@ export default function Home() {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Dialog states
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
@@ -194,6 +196,11 @@ export default function Home() {
     },
   ];
 
+  // Jangan render dashboard sampai pengecekan auth selesai
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row h-screen">
       {/* Sidebar - Desktop Only */}
@@ -208,34 +215,42 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col w-full overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex-shrink-0">
+        {/* Header - Mobile Only */}
+        <header className="md:hidden bg-white border-b border-gray-200 px-4 py-4 flex-shrink-0">
           <div className="flex justify-between items-center">
-            {/* Left - Logo (Mobile) */}
-            <div className="flex md:hidden items-center gap-2">
+            {/* Left - Logo */}
+            <div className="flex items-center gap-2">
               <ListTodo className="w-6 h-6 text-blue-600" />
               <span className="text-lg font-bold text-gray-900">TugasKu</span>
             </div>
 
-            {/* Right - Hamburger Menu (Mobile) */}
-            <div className="md:hidden">
-              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Desktop - User Profile (Sidebar) */}
-            <div className="hidden md:block"></div>
+            {/* Right - User Profile Menu (Mobile) */}
+            <DropdownMenu
+              open={mobileMenuOpen}
+              onOpenChange={setMobileMenuOpen}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-10 w-10 p-0 rounded-full cursor-pointer"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                    {user.username?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-sm font-medium text-gray-900">
+                  {user.username || "User"}
+                </div>
+                <div className="border-t border-gray-200" />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2 cursor-pointer" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -291,7 +306,7 @@ export default function Home() {
                 setNewTaskDescription("");
                 setShowAddTaskDialog(true);
               }}
-              className="gap-2 text-sm sm:text-base flex-shrink-0 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="gap-2 text-sm sm:text-base flex-shrink-0 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 cursor-pointer"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Tambah Tugas</span>
@@ -322,7 +337,7 @@ export default function Home() {
                       <Checkbox
                         checked={task.isCompleted}
                         onCheckedChange={() => toggleTaskisCompleted(task.id)}
-                        className="mt-1 flex-shrink-0"
+                        className="mt-1 flex-shrink-0 cursor-pointer"
                       />
 
                       <div className="flex-1 min-w-0 w-full">
@@ -335,19 +350,20 @@ export default function Home() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 flex-shrink-0"
+                                className="h-8 w-8 p-0 flex-shrink-0 cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                className="cursor-pointer"
                                 onClick={() => handleEditTask(task)}
                               >
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-red-600"
+                                className="text-red-600  cursor-pointer"
                                 onClick={() => handleDeleteTask(task.id)}
                               >
                                 Hapus
@@ -402,7 +418,7 @@ export default function Home() {
                       <Checkbox
                         checked={task.isCompleted}
                         onCheckedChange={() => toggleTaskisCompleted(task.id)}
-                        className="mt-1 flex-shrink-0"
+                        className="mt-1 flex-shrink-0 cursor-pointer"
                       />
 
                       <div className="flex-1 min-w-0 w-full">
@@ -415,19 +431,20 @@ export default function Home() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 flex-shrink-0"
+                                className="h-8 w-8 p-0 flex-shrink-0 cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                className="cursor-pointer"
                                 onClick={() => handleEditTask(task)}
                               >
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-red-600"
+                                className="text-red-600 cursor-pointer"
                                 onClick={() => handleDeleteTask(task.id)}
                               >
                                 Hapus
@@ -477,7 +494,7 @@ export default function Home() {
             onClick: handleAddTask,
             variant: "default",
             className:
-              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+              "cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
           },
         ]}
       >
@@ -522,7 +539,7 @@ export default function Home() {
               editingTaskId !== null && handleSaveEdit(editingTaskId),
             variant: "default",
             className:
-              "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
+              "cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
           },
         ]}
       >
@@ -563,6 +580,8 @@ export default function Home() {
             label: "Hapus",
             onClick: confirmDeleteTask,
             variant: "destructive",
+            className:
+              "cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
           },
         ]}
       >
